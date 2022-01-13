@@ -1,0 +1,10 @@
+import { Generations, TYPE_CHART } from "@smogon/calc";
+import { Pokemon } from "@smogon/calc/dist/pokemon.js";
+import { Move } from "@smogon/calc/dist/move.js";
+import { parseTeamTxt, Team } from "./pkmn-h/index.js";
+window.parseTeamTxt = parseTeamTxt;
+window.Team = Team;
+window.Generations = Generations;
+window.Pokemon = Pokemon;
+window.Move = Move;
+console.log(TYPE_CHART);

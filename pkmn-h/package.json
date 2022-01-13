@@ -1,0 +1,20 @@
+{
+  "name": "pkmn-h",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "source": "index.js",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "parcel build"
+  },
+  "dependencies": {
+    "@pkmn/sets": "latest",
+    "@smogon/calc": "0.6.0"
+  },
+  "devDependencies": {
+    "parcel": "latest"
+  },
+  "keywords": []
+}

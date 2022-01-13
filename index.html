@@ -1,0 +1,74 @@
+<head>
+  <title>Pokemon Team Heuristics Site</title>
+  <script src = "./dist/site.js"></script>
+  <script src = "https://summerstyle.github.io/jsonTreeViewer/libs/jsonTree/jsonTree.js"></script>
+  <link href="https://summerstyle.github.io/jsonTreeViewer/libs/jsonTree/jsonTree.css" rel="stylesheet" />
+  <style>
+    * {
+      font-family: Arial;
+    }
+    textarea {
+      min-width: 27em;
+      min-height: 10em;
+      resize: vertical;
+    }
+    ul {
+      list-style-type: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pokemon Heuristics Calculator</h1>
+  <hr>
+  <div id="calc-area">
+    <p>Heuristic <select id="heuristics" name="heuristics"></select> <button onclick = "calcHeuristic();">Calculate!</button></p>
+    <p>Method (0 for avg, 1 for log): <input id="hMethod" placeholder = "0"/></p>
+    <p id="calc-info"></p>
+    <div id="calc-results" style="background:#DDDDDD; width:fit-content"></div>
+  </div>
+  <p><b>Import Team</b> <button onclick = "setTestTeam();">Submit</button></p>
+  <p>Generation (1-8): <input id="gen-input" placeholder = "8"/></p>
+  <p>Tier (ex. gen8ou): <input id="tier-input" placeholder = "gen8ou" /></p>
+  <p><textarea id="team-input" rows="10"></textarea></p>
+  <footer>
+      <hr>
+      <p>Github Link</p>
+      <p>Made by Ryan Kim</p>
+  </footer>
+</body>
+<script>
+  //fill in the list of heuristic options
+  const hOptions = document.getElementById("heuristics");
+  const hList = Object.getOwnPropertyNames(Team.prototype);
+  for(let i in hList) {
+    if (hList[i] === "constructor") {
+      continue;
+    }
+    hOptions.append(document.createElement("option"));
+    hOptions.lastChild.value = hList[i];
+    hOptions.lastChild.innerText = hList[i];
+  }
+  let testTeam;
+
+  function setTestTeam() {
+    testTeam = parseTeamTxt(document.getElementById("team-input").value.trim(),
+    Number(document.getElementById("gen-input").value || document.getElementById("gen-input").placeholder),
+    document.getElementById("tier-input").value || document.getElementById("tier-input").placeholder);
+    console.log("test team submitted", testTeam);
+  }
+
+  function calcHeuristic() {
+    const method = Number(document.getElementById("hMethod").value || document.getElementById("hMethod").placeholder);
+    const hVal = testTeam[document.getElementById("heuristics").value](undefined, undefined, method);
+    const info = document.getElementById("calc-info");
+    const results = document.getElementById("calc-results");
+    const cNode = results.cloneNode(false);
+    results.parentElement.replaceChild(cNode, results);
+    jsonTree.create(hVal, cNode);
+    info.innerText = "";
+
+    if(hVal.length === 3) { //heuristics are split into special, physical, and combined attributes
+      info.innerText = "Index 0 -> values for the special side\nIndex 1 -> values for the physical side\n Index 2 -> values for both sides combined";
+    }
+  }
+</script>
