@@ -1,3 +1,7 @@
+---
+permalink: /index.html
+---
+
 # Pokemon Team Heuristics Site
 
 This repository contains the code for both the website and the heuristics library. The library can be found in `pkmn-h`. It has its own `package.json`.
