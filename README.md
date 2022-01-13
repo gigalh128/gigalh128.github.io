@@ -22,6 +22,8 @@ The heuristics would be useless if you couldn't understand them, so these interp
 
 Remember that HIGHER is BETTER in all cases. 
 
+Heuristic weights come from the pokemon "usage" statistics at smogon.com/stats. It is important for interpretation to understand that the "usage" statistics do not represent the probability that you see a pokemon. Rather, they represent the proportional relevancy of a given pokemon since there could be a large number of lowly weighted pokemon that make up 50% "usage" alongside a small number of highly weighted pokemon that also make up 50% "usage".
+
 * **stabCovgH** calculates the average type effectiveness of each pokemon's best STAB against each given type
 * **naiveStabCovgH** calculates the average type effectiveness of each pokemon's STAB against each given type
 * **typeWeakH** calculates the average weakness of all the types against each pokemon
