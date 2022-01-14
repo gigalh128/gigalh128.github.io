@@ -64,11 +64,18 @@
     const results = document.getElementById("calc-results");
     const cNode = results.cloneNode(false);
     results.parentElement.replaceChild(cNode, results);
-    jsonTree.create(hVal, cNode);
+    const tree = jsonTree.create(hVal, cNode);
+    tree.findAndHandle(function(item){return item.type === "number"},
+      function(item) {
+        const el = item.el.lastChild.lastElementChild;
+        el.innerText = Number(el.innerText).toFixed(3);
+      }
+    )
     info.innerText = "";
 
     if(hVal.length === 3) { //heuristics are split into special, physical, and combined attributes
       info.innerText = "Index 0 -> values for the special side\nIndex 1 -> values for the physical side\n Index 2 -> values for both sides combined";
     }
+    console.log(document.getElementById("heuristics").value + " heuristic calculated", hVal);
   }
 </script>
