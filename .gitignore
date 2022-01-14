@@ -1,3 +1,4 @@
 node_modules
 pkmn-h/dist
 .parcel-cache
+._*

@@ -32,7 +32,7 @@
   <p><textarea id="team-input" rows="10"></textarea></p>
   <footer>
       <hr>
-      <p>Github Link</p>
+      <p>Github Link: <a href = "https://github.com/gigalh128/gigalh128.github.io">https://github.com/gigalh128/gigalh128.github.io</a></p>
       <p>Made by Ryan Kim</p>
   </footer>
 </body>
@@ -51,7 +51,7 @@
   let testTeam;
 
   function setTestTeam() {
-    testTeam = parseTeamTxt(document.getElementById("team-input").value.trim(),
+    testTeam = parseTeamTxt(document.getElementById("team-input").value,
     Number(document.getElementById("gen-input").value || document.getElementById("gen-input").placeholder),
     document.getElementById("tier-input").value || document.getElementById("tier-input").placeholder);
     console.log("test team submitted", testTeam);

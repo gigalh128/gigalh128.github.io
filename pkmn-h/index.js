@@ -14,6 +14,44 @@ export class Team {
   }
 
   stabCovgH(sIndx, eIndx, method = 0) {
+    //returns a dictionary of how good a team's STAB covg moves are against other types
+    if (sIndx === undefined) {
+      sIndx = 0;
+    }
+
+    if (eIndx === undefined) {
+      eIndx = this.pkmnlist.length;
+    }
+
+    const dict = {};
+
+    for (let type in TYPE_CHART[this.gen.num]) {
+      dict[type] = 0;
+
+      for (let i = sIndx; i < eIndx; i++) {
+        for (let j in this.pkmnlist[i].types) {
+          let x = TYPE_CHART[this.gen.num][this.pkmnlist[i].types[j]][type];
+          switch (method) {
+            case 0: //average weight
+              x /= eIndx - sIndx;
+              x /= this.pkmnlist[i].types.length;
+              break;
+
+            case 1: //log base 2 of type matchup
+              x = x === 0 ? -3 : Math.log(x) / Math.log(2);
+              break;
+
+            default:
+              break;
+          }
+          dict[type] += x;
+        }
+      }
+    }
+    return dict;
+  }
+
+  bestStabCovgH(sIndx, eIndx, method = 0) {
     //takes the most effective STAB from each pokemon on a team and returns a dictionary of how their best STAB moves do against each type
     if (sIndx === undefined) {
       sIndx = 0;
@@ -51,8 +89,8 @@ export class Team {
     return dict;
   }
 
-  naiveStabCovgH(sIndx, eIndx, method = 0) {
-    //returns a dictionary of how good a team's STAB covg moves are against other types
+  offensesH(sIndx, eIndx, method = 0) {
+    //calculate the average potency of each attack on the team
     if (sIndx === undefined) {
       sIndx = 0;
     }
@@ -60,33 +98,139 @@ export class Team {
     if (eIndx === undefined) {
       eIndx = this.pkmnlist.length;
     }
-
-    const dict = {};
-
+    const hVals = [{}, {}, {}];
     for (let type in TYPE_CHART[this.gen.num]) {
-      dict[type] = 0;
+      if (type === "???") {
+        continue;
+      }
+      const testDefender = new Pokemon(this.gen, "Mew", {
+        overrides: { types: [type] }
+      });
+
+      const moveCategories = [0, 0]; //Special, Physical
+      hVals[0][type] = 0;
+      hVals[1][type] = 0;
+      hVals[2][type] = 0;
 
       for (let i = sIndx; i < eIndx; i++) {
-        for (let j in this.pkmnlist[i].types) {
-          let x = TYPE_CHART[this.gen.num][this.pkmnlist[i].types[j]][type];
-          switch (method) {
-            case 0: //average weight
-              x /= eIndx - sIndx;
-              x /= this.pkmnlist[i].types.length;
-              break;
-
-            case 1: //log base 2 of type matchup
-              x = x === 0 ? -3 : Math.log(x) / Math.log(2);
-              break;
-
-            default:
-              break;
+        //loop through pkmn on the team
+        for (let j in this.pkmnlist[i].moves) {
+          const tempMove = new Move(this.gen, this.pkmnlist[i].moves[j]);
+          if (tempMove.category === "Status") {
+            continue;
           }
-          dict[type] += x;
+          let x = calculate(
+            this.gen,
+            this.pkmnlist[i],
+            testDefender,
+            tempMove,
+            new Field()
+          );
+          x =
+            (typeof x.damage === "number" ? x.damage : x.damage[0]) /
+            testDefender.stats.hp;
+
+          const moveCategory = tempMove.category === "Special" ? 0 : 1;
+          hVals[moveCategory][type] += x;
+          moveCategories[moveCategory]++;
         }
       }
+
+      switch (method) {
+        case 0: //average
+          hVals[0][type] /= moveCategories[0];
+          hVals[1][type] /= moveCategories[1];
+          break;
+        default:
+          break;
+      }
+
+      if (moveCategories[0] === 0) {
+        delete hVals[0][type];
+      } else {
+        hVals[2][type] += hVals[0][type];
+      }
+      if (moveCategories[1] === 0) {
+        delete hVals[1][type];
+      } else {
+        hVals[2][type] += hVals[1][type];
+      }
+
+      if (moveCategories[0] > 0 && moveCategories[1] > 0) {
+        hVals[2][type] *= 0.5;
+      }
     }
-    return dict;
+    return hVals;
+  }
+
+  offensesHStdDev(sIndx, eIndx, method = 0) {
+    if (sIndx === undefined) {
+      sIndx = 0;
+    }
+
+    if (eIndx === undefined) {
+      eIndx = this.pkmnlist.length;
+    }
+    const hVals = this.offensesH(sIndx, eIndx, method);
+    const stdDevs = [{}, {}, {}];
+
+    for (let type in TYPE_CHART[this.gen.num]) {
+      if (type === "???") {
+        continue;
+      }
+      const testDefender = new Pokemon(this.gen, "Mew", {
+        overrides: { types: [type] }
+      });
+
+      const moveCategories = [0, 0]; //Special, Physical
+      stdDevs[0][type] = 0;
+      stdDevs[1][type] = 0;
+      stdDevs[2][type] = 0;
+
+      for (let i = sIndx; i < eIndx; i++) {
+        //loop through pkmn on the team
+        for (let j in this.pkmnlist[i].moves) {
+          const tempMove = new Move(this.gen, this.pkmnlist[i].moves[j]);
+          if (tempMove.category === "Status") {
+            continue;
+          }
+          let x = calculate(
+            this.gen,
+            this.pkmnlist[i],
+            testDefender,
+            tempMove,
+            new Field()
+          );
+          x =
+            (typeof x.damage === "number" ? x.damage : x.damage[0]) /
+            testDefender.stats.hp;
+
+          const moveCategory = tempMove.category === "Special" ? 0 : 1;
+          stdDevs[moveCategory][type] += (x - hVals[moveCategory][type]) ** 2;
+          stdDevs[2][type] += (x - hVals[moveCategory][type]) ** 2;
+          moveCategories[moveCategory]++;
+        }
+      }
+
+      switch (method) {
+        case 0: //average
+          break;
+        default:
+          break;
+      }
+      stdDevs[0][type] = (stdDevs[0][type] / moveCategories[0]) ** 0.5;
+      stdDevs[1][type] = (stdDevs[1][type] / moveCategories[1]) ** 0.5;
+      stdDevs[2][type] =
+        (stdDevs[2][type] / (moveCategories[0] + moveCategories[1])) ** 0.5;
+
+      if (moveCategories[0] === 0) {
+        delete stdDevs[0][type];
+      }
+      if (moveCategories[1] === 0) {
+        delete stdDevs[1][type];
+      }
+    }
+    return stdDevs;
   }
 
   typeWeakH(sIndx, eIndx, method = 0) {
@@ -424,29 +568,30 @@ export class Team {
         let v = 0;
         switch (hazard) {
           case "Stealth Rock":
-            v = getTypeEffectiveness("Rock", this.pkmnlist[i]);
+            v = -getTypeEffectiveness("Rock", this.pkmnlist[i]);
             break;
           case "Spikes":
-            if (!grounded) {
-              v = this.gen.num > 2 ? 4 / 3 : 1;
+            console.log(grounded, this.pkmnlist[i].name);
+            if (grounded) {
+              v = -1;
             }
             break;
           case "Toxic Spikes":
             if (this.pkmnlist[i].types.includes("Poison") && grounded) {
-              v = -1;
+              v = 1;
             } else if (this.pkmnlist[i].hasAbility("Poison Heal", "Guts")) {
-              v = -0.5;
+              v = 0.5;
             } else if (
-              !grounded &&
+              grounded &&
               !this.pkmnlist[i].hasAbility("Immunity") &&
               getTypeEffectiveness("Poison", this.pkmnlist[i]) !== 0
             ) {
-              v = 1;
+              v = -1;
             }
             break;
           case "Sticky Web":
-            if (!grounded) {
-              v = 1;
+            if (grounded) {
+              v = -1;
               if (
                 this.pkmnlist[i].hasAbility(
                   "Contrary",
@@ -454,7 +599,7 @@ export class Team {
                   "Defiant"
                 )
               ) {
-                v = -0.5;
+                v = 0.5;
               }
             }
             break;
@@ -462,7 +607,7 @@ export class Team {
             break;
         }
         if (unaffected) {
-          v = Math.min(v, 0);
+          v = Math.max(v, 0);
         }
         v /= eIndx - sIndx;
         hVals[hazard] += v;
@@ -472,16 +617,29 @@ export class Team {
   }
 }
 
-const t = new Team(8, "gen8ou");
-t.pkmnlist.push(
-  new Pokemon(Generations.get(8), "Landorus", { evs: { atk: 252 } })
-);
-t.pkmnlist.push(new Pokemon(Generations.get(8), "Tapu Koko"));
-t.pkmnlist.push(new Pokemon(Generations.get(8), "Azumarill"));
-t.pkmnlist.push(new Pokemon(Generations.get(8), "Hawlucha"));
-t.pkmnlist.push(new Pokemon(Generations.get(8), "Garchomp"));
-t.pkmnlist.push(new Pokemon(Generations.get(8), "Dragonite"));
+export function parseTeamTxt(text, gen, tier) {
+  const inlist = text.trim().split(/\n *\n/);
+  const t = new Team(gen, tier);
+  for (let i in inlist) {
+    const pkmndata = Sets.importSet(inlist[i]);
+    t.pkmnlist.push(
+      new Pokemon(t.gen, checkExeptions(pkmndata.species), pkmndata)
+    );
+  }
+  return t;
+}
 
+/*
+const t = parseTeamTxt(
+  `
+
+
+
+  `,
+  8,
+  "gen8ou"
+);
+*/
 //console.log(t.stabCovgH());
 //console.log(t.naiveStabCovgH());
 
@@ -508,17 +666,7 @@ console.log("wDefensesH");
 console.log(t.wDefensesH());
 console.log("wStdDevsH");
 console.log(t.wDefensesHStdDev());
+console.log(t.hazardsH());
+console.log(t.offensesH());
+console.log(t.offensesHStdDev());
 */
-//console.log(t.hazardsH());
-
-export function parseTeamTxt(text, gen, tier) {
-  const inlist = text.split("\n\n");
-  const t = new Team(gen, tier);
-  for (let i in inlist) {
-    const pkmndata = Sets.importSet(inlist[i]);
-    t.pkmnlist.push(
-      new Pokemon(t.gen, checkExeptions(pkmndata.species), pkmndata)
-    );
-  }
-  return t;
-}
