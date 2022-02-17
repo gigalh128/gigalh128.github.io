@@ -31,7 +31,7 @@ Heuristic weights come from the pokemon "usage" statistics at smogon.com/stats. 
 * **typeWeakH** calculates the average weakness of all the types against each pokemon
 * **typeWeakHStdDevs** calculates the standard deviation of typeWeakH
 * **wTypeWeakH** calculates the average weakness against each type, weighted by the viability weights and average base power of each type. 
-* **defensesH** calculates the average damage taken from a 100 base power move of each given type executed by Mew without STAB as a proxy to see how well the team defends against each type
+* **defensesH** calculates the average damage taken from a 100 base power move of each given type executed by Mew with STAB as a proxy to see how well the team defends against each type
 * **defensesHStdDev** calculates the standard deviation of defensesH
 * **wDefensesH** calculates defensesH weighted by the the average base power of each move, and the viability weights of each type
 * **wDefensesHStdDev** calculates the standard deviation of wDefensesH
