@@ -632,14 +632,12 @@ export function parseTeamTxt(text, gen, tier) {
 /*
 const t = parseTeamTxt(
   `
-
-
-
   `,
-  8,
-  "gen8ou"
+  9,
+  "gen9ou"
 );
 */
+//console.log(t);
 //console.log(t.stabCovgH());
 //console.log(t.naiveStabCovgH());
 

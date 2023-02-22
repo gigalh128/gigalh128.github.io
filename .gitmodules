@@ -1,0 +1,3 @@
+[submodule "pkmn-h/damage-calc"]
+	path = pkmn-h/damage-calc
+	url = https://github.com/smogon/damage-calc/

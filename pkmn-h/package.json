@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@pkmn/sets": "latest",
-    "@smogon/calc": "0.6.0"
+    "@smogon/calc": "file:damage-calc/calc"
   },
   "devDependencies": {
     "parcel": "latest"
