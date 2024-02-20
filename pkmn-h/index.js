@@ -100,7 +100,7 @@ export class Team {
     }
     const hVals = [{}, {}, {}];
     for (let type in TYPE_CHART[this.gen.num]) {
-      if (type === "???") {
+      if (type === "???" || type === "Stellar") {
         continue;
       }
       const testDefender = new Pokemon(this.gen, "Mew", {
@@ -175,7 +175,7 @@ export class Team {
     const stdDevs = [{}, {}, {}];
 
     for (let type in TYPE_CHART[this.gen.num]) {
-      if (type === "???") {
+      if (type === "???" || type === "Stellar") {
         continue;
       }
       const testDefender = new Pokemon(this.gen, "Mew", {
@@ -302,6 +302,7 @@ export class Team {
     //weights are calculated from the typeWeights script
     const hValClone = this.typeWeakH(sIndx, eIndx, method);
     delete hValClone["???"];
+    delete hValClone["Stellar"];
     const hVals = [
       JSON.parse(JSON.stringify(hValClone)),
       JSON.parse(JSON.stringify(hValClone)),
@@ -311,7 +312,7 @@ export class Team {
     const numSpecial = this.gen.num > 3 ? numTypes : Math.floor(numTypes / 2);
     const numPhysical = this.gen.num > 3 ? numTypes : numSpecial + 1;
     for (let type in TYPE_CHART[this.gen.num]) {
-      if (type === "???") {
+      if (type === "???" || type === "Stellar") {
         continue;
       }
       if (this.gen.num > 3) {
@@ -353,7 +354,7 @@ export class Team {
     }
     const hVals = [{}, {}, {}];
     for (let type in TYPE_CHART[this.gen.num]) {
-      if (type === "???") {
+      if (type === "???" || type === "Stellar") {
         continue;
       }
       const testAttacker = new Pokemon(this.gen, "Mew", {
@@ -442,7 +443,7 @@ export class Team {
     const hVals = this.defensesH(sIndx, eIndx, method);
     const stdDevs = [{}, {}, {}];
     for (let type in TYPE_CHART[this.gen.num]) {
-      if (type === "???") {
+      if (type === "???" || type === "Stellar") {
         continue;
       }
       if (this.gen.num > 3 || gen3TypeCategorization[type] === "Special") {
@@ -625,6 +626,7 @@ export function parseTeamTxt(text, gen, tier) {
     t.pkmnlist.push(
       new Pokemon(t.gen, checkExeptions(pkmndata.species), pkmndata)
     );
+    t.pkmnlist[i].teraType = undefined; // need to do this or the calc will use the pokemon's tera type in calculations
   }
   return t;
 }
@@ -632,12 +634,21 @@ export function parseTeamTxt(text, gen, tier) {
 /*
 const t = parseTeamTxt(
   `
+Kilowattrel @ Life Orb  
+Ability: Volt Absorb  
+Tera Type: Ice  
+EVs: 4 Atk / 252 SpA / 252 Spe  
+Hasty Nature  
+- Thunderbolt  
+- Tera Blast  
+- Volt Switch  
+- Quick Attack  
   `,
   9,
   "gen9ou"
 );
-*/
-//console.log(t);
+
+console.log(t);
 //console.log(t.stabCovgH());
 //console.log(t.naiveStabCovgH());
 
@@ -667,4 +678,21 @@ console.log(t.wDefensesHStdDev());
 console.log(t.hazardsH());
 console.log(t.offensesH());
 console.log(t.offensesHStdDev());
+*/
+/*
+const type = "Ice";
+const testAttacker = new Pokemon(Generations.get(9), "Mew", {
+overrides: { types: [type] }
+});
+const testMove = new Move(Generations.get(9), "Egg Bomb", {
+overrides: { type: type, category: "Special" }
+});
+const calc = calculate(
+Generations.get(9),
+testAttacker,
+t.pkmnlist[0],
+testMove,
+new Field()
+);
+console.log(calc);
 */
